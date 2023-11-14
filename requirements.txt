@@ -1,0 +1,2 @@
+pillow~=10.1.0
+torchvision~=0.17.0.dev20231106
