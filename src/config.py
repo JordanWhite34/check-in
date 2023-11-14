@@ -1,10 +1,10 @@
 # config.py
 
-# Data paths (relative to project root directory)
+# Data paths (relative to src directory)
 DATA_PATHS = {
-    'raw': 'data/raw',
-    'processed': 'data/processed',
-    'augmented': 'data/augmented'
+    'raw': '../data/raw',
+    'processed': '../data/processed',
+    'augmented': '../data/augmented'
 }
 
 # Image Preprocessing Settings
@@ -29,4 +29,9 @@ TRAINING_CONFIG = {
     'scheduler_gamma': 0.1,  # Decay factor for learning rate
 }
 
-# Additional settings can be added as needed
+# Data Split Ratios
+SPLIT_RATIOS = {
+    'train_ratio': 0.8,
+    'val_ratio': 0.1,
+    'test_ratio': 0.1
+}
