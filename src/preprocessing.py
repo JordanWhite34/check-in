@@ -47,7 +47,8 @@ def preprocess_directory(directory_path, output_directory):
 
 # Main function to run the preprocessing
 if __name__ == "__main__":
-    for data_type in ['raw', 'processed', 'augmented']:
-        input_dir = os.path.join(DATA_PATHS[data_type])
-        output_dir = os.path.join(DATA_PATHS['processed'], data_type)
+    for category in ['clean', 'messy']:
+        input_dir = os.path.join(DATA_PATHS['raw'], category)
+        output_dir = os.path.join(DATA_PATHS['processed'], category)
+
         preprocess_directory(input_dir, output_dir)
