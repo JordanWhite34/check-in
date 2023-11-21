@@ -31,7 +31,7 @@ TRAINING_CONFIG = {
 
 # Data Split Ratios
 SPLIT_RATIOS = {
-    'train_ratio': 0.8,
-    'val_ratio': 0.1,
-    'test_ratio': 0.1
+    'train_ratio': 0.7,
+    'val_ratio': 0.15,
+    'test_ratio': 0.15
 }
