@@ -8,7 +8,8 @@ from models.model import SimpleCNN
 from config import MODEL_PARAMS, DATA_PATHS
 
 # Device configuration
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = torch.device('mps')
+print(device)
 
 
 # Save checkpoint function
