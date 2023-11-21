@@ -78,3 +78,5 @@ if __name__ == "__main__":
         preprocess_directory(train_dir, train_dir)
         preprocess_directory(val_dir, val_dir)
         preprocess_directory(test_dir, test_dir)
+
+        print("preprocessing complete")
