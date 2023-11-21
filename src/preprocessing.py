@@ -13,15 +13,12 @@ def load_image(image_path):
 
 
 def transform_image(image):
-    # Resize image using OpenCV
     resized_image = cv2.resize(image, PREPROCESSING_CONFIG['image_size'])
-
-    # Convert to float and normalize
-    resized_image = resized_image.astype(np.float32) / 255.
-    mean = np.array(PREPROCESSING_CONFIG['mean'])
-    std = np.array(PREPROCESSING_CONFIG['std'])
+    # Normalize the image
+    resized_image = resized_image.astype(np.float32) / 255.0
+    mean = np.array(PREPROCESSING_CONFIG['mean'], dtype=np.float32)
+    std = np.array(PREPROCESSING_CONFIG['std'], dtype=np.float32)
     normalized_image = (resized_image - mean) / std
-
     return normalized_image
 
 

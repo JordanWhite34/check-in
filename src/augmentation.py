@@ -4,22 +4,32 @@ import cv2
 import numpy as np
 from config import DATA_PATHS
 
-def augment_image(image):
-    # Define augmentation transformations here
-    # Example: Flip, rotate, adjust brightness, etc.
 
+def augment_image(image):
+    # List to store augmented images
+    augmented_images = []
+
+    # Different augmentation techniques
     # Horizontal flip
     flipped = cv2.flip(image, 1)
+    augmented_images.append(flipped)
 
-    # Rotation
-    center = (image.shape[1] // 2, image.shape[0] // 2)
-    rotation_matrix = cv2.getRotationMatrix2D(center, angle=15, scale=1)
-    rotated = cv2.warpAffine(image, rotation_matrix, (image.shape[1], image.shape[0]))
+    # Rotation at different angles
+    angles = [10, 15, -15]  # Example angles
+    for angle in angles:
+        center = (image.shape[1] // 2, image.shape[0] // 2)
+        rotation_matrix = cv2.getRotationMatrix2D(center, angle=angle, scale=1)
+        rotated = cv2.warpAffine(image, rotation_matrix, (image.shape[1], image.shape[0]))
+        augmented_images.append(rotated)
 
-    # Brightness adjustment (increase by 10%)
-    brightness_adjusted = cv2.convertScaleAbs(image, alpha=1.1, beta=0)
+    # Brightness adjustments
+    alphas = [1.1, 0.9]  # Example for increasing and decreasing brightness
+    for alpha in alphas:
+        brightness_adjusted = cv2.convertScaleAbs(image, alpha=alpha, beta=0)
+        augmented_images.append(brightness_adjusted)
 
-    return [flipped, rotated, brightness_adjusted]
+    return augmented_images
+
 
 def process_directory(input_directory, output_directory):
     if not os.path.exists(output_directory):
@@ -44,6 +54,7 @@ def process_directory(input_directory, output_directory):
                     cv2.imwrite(output_path, aug_image)
             except Exception as e:
                 print(f"Error processing {filename}: {e}")
+
 
 if __name__ == "__main__":
     for category in ['clean', 'messy']:
