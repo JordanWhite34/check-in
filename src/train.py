@@ -6,102 +6,96 @@ from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 from models.model import SimpleCNN
 from config import MODEL_PARAMS, DATA_PATHS
-from utils import save_checkpoint, load_checkpoint  # Assuming you have these utility functions
 
 # Device configuration
-device = torch.device('mps')
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
-def train(model, dataloaders, criterion, optimizer, num_epochs, device):
-    model = model.to(device)
-    best_accuracy = 0.0
+# Save checkpoint function
+def save_checkpoint(state, filename="checkpoint.pth.tar"):
+    torch.save(state, filename)
 
-    for epoch in range(num_epochs):
-        model.train()
-        running_loss = 0.0
-        correct_preds = 0
-        total_preds = 0
 
-        for images, labels in dataloaders['train']:
-            images, labels = images.to(device), labels.to(device)
+# Load checkpoint function
+def load_checkpoint(model, optimizer, filename="checkpoint.pth.tar"):
+    checkpoint = torch.load(filename, map_location=device)
+    model.load_state_dict(checkpoint['state_dict'])
+    if optimizer:
+        optimizer.load_state_dict(checkpoint['optimizer'])
 
-            # Forward pass
-            outputs = model(images)
+
+# Initialize the model
+model = SimpleCNN().to(device)
+
+# Loss and optimizer
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam(model.parameters(), lr=MODEL_PARAMS['learning_rate'])
+
+# Data loading
+transform = transforms.Compose([
+    transforms.Resize((224, 224)),  # Adjust to your preprocessing size
+    transforms.ToTensor(),
+    # Add any other transformations you defined in preprocessing.py
+])
+
+train_dataset = datasets.ImageFolder(root=DATA_PATHS['processed'] + '/train', transform=transform)
+train_loader = DataLoader(train_dataset, batch_size=MODEL_PARAMS['batch_size'], shuffle=True)
+
+val_dataset = datasets.ImageFolder(root=DATA_PATHS['processed'] + '/val', transform=transform)
+val_loader = DataLoader(val_dataset, batch_size=MODEL_PARAMS['batch_size'], shuffle=False)
+
+dataloaders = {'train': train_loader, 'val': val_loader}
+
+# Training loop
+for epoch in range(MODEL_PARAMS['num_epochs']):
+    running_loss = 0.0
+    correct = 0
+    total = 0
+    model.train()
+
+    for inputs, labels in dataloaders['train']:
+        inputs, labels = inputs.to(device), labels.to(device)
+
+        # Forward pass
+        outputs = model(inputs)
+        loss = criterion(outputs, labels)
+
+        # Backward and optimize
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+        running_loss += loss.item()
+        _, predicted = torch.max(outputs.data, 1)
+        total += labels.size(0)
+        correct += (predicted == labels).sum().item()
+
+    print(f'Epoch [{epoch+1}/{MODEL_PARAMS["num_epochs"]}], Loss: {running_loss/total:.4f}, Accuracy: {100 * correct/total:.2f}%')
+
+    # Validation step
+    model.eval()
+    val_loss = 0.0
+    val_correct = 0
+    val_total = 0
+    with torch.no_grad():
+        for inputs, labels in dataloaders['val']:
+            inputs, labels = inputs.to(device), labels.to(device)
+            outputs = model(inputs)
             loss = criterion(outputs, labels)
+            val_loss += loss.item()
+            _, predicted = torch.max(outputs.data, 1)
+            val_total += labels.size(0)
+            val_correct += (predicted == labels).sum().item()
 
-            # Backward pass and optimization
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
+    val_accuracy = 100 * val_correct / val_total
+    print(f'Validation Accuracy: {val_accuracy:.2f}%')
 
-            running_loss += loss.item()
-            _, predicted = torch.max(outputs, 1)
-            correct_preds += (predicted == labels).sum().item()
-            total_preds += labels.size(0)
+    # Save the model checkpoint
+    if epoch % 5 == 0:  # Save every 5 epochs, adjust as needed
+        save_checkpoint({
+            'epoch': epoch,
+            'state_dict': model.state_dict(),
+            'optimizer': optimizer.state_dict(),
+        }, filename=f"checkpoint_epoch_{epoch}.pth.tar")
 
-        epoch_loss = running_loss / len(dataloaders['train'].dataset)
-        epoch_accuracy = correct_preds / total_preds
-        print(f'Epoch {epoch+1}/{num_epochs}, Loss: {epoch_loss}, Accuracy: {epoch_accuracy}')
-
-        # Validation phase
-        model.eval()
-        with torch.no_grad():
-            val_running_loss = 0.0
-            val_correct_preds = 0
-            val_total_preds = 0
-
-            for images, labels in dataloaders['val']:
-                images, labels = images.to(device), labels.to(device)
-
-                outputs = model(images)
-                loss = criterion(outputs, labels)
-
-                val_running_loss += loss.item()
-                _, predicted = torch.max(outputs, 1)
-                val_correct_preds += (predicted == labels).sum().item()
-                val_total_preds += labels.size(0)
-
-            val_loss = val_running_loss / len(dataloaders['val'].dataset)
-            val_accuracy = val_correct_preds / val_total_preds
-            print(f'Validation Loss: {val_loss}, Accuracy: {val_accuracy}')
-
-            # Save the model if validation accuracy has increased
-            if val_accuracy > best_accuracy:
-                print('Validation Accuracy Improved from {:.4f} to {:.4f}'.format(best_accuracy, val_accuracy))
-                best_accuracy = val_accuracy
-                checkpoint = {
-                    'epoch': epoch + 1,
-                    'state_dict': model.state_dict(),
-                    'optimizer_state_dict': optimizer.state_dict(),
-                    'accuracy': val_accuracy,
-                }
-                save_checkpoint(checkpoint, filename="best_checkpoint.pth.tar")
-
-
-if __name__ == "__main__":
-    transform = transforms.Compose([
-        transforms.Resize((224, 224)),  # Example, adjust to your needs
-        transforms.ToTensor(),
-        # Add any other transformations from your preprocessing.py
-    ])
-
-    # Load Datasets
-    train_dataset = datasets.ImageFolder(root=DATA_PATHS['processed'] + '/train', transform=transform)
-    val_dataset = datasets.ImageFolder(root=DATA_PATHS['processed'] + '/val', transform=transform)
-
-    # Data Loaders
-    dataloaders = {
-        'train': DataLoader(train_dataset, batch_size=MODEL_PARAMS['batch_size'], shuffle=True),
-        'val': DataLoader(val_dataset, batch_size=MODEL_PARAMS['batch_size'], shuffle=False)
-    }
-
-    # Model, Loss Function, Optimizer
-    model = SimpleCNN()
-    criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=MODEL_PARAMS['learning_rate'])
-
-    # Number of epochs
-    num_epochs = MODEL_PARAMS['num_epochs']
-
-    # Start Training
-    train(model, dataloaders, criterion, optimizer, num_epochs, device)
+print('Finished Training')

@@ -2,7 +2,8 @@
 import os
 import cv2
 import numpy as np
-import torch
+import shutil
+from sklearn.model_selection import train_test_split
 from config import PREPROCESSING_CONFIG, DATA_PATHS
 
 
@@ -45,9 +46,35 @@ def preprocess_directory(directory_path, output_directory):
                 print(f"Error processing {filename}: {e}")
 
 
-if __name__ == "__main__":
-    for category in ['clean', 'messy']:
-        input_dir = os.path.join(DATA_PATHS['raw'], category)
-        output_dir = os.path.join(DATA_PATHS['processed'], category)
+def split_data(source, train_dir, val_dir, test_dir, train_size=0.7, val_size=0.15):
+    files = os.listdir(source)
+    train_files, test_files = train_test_split(files, test_size=1 - train_size, random_state=42)
+    train_files, val_files = train_test_split(train_files, test_size=val_size / (train_size + val_size),
+                                              random_state=42)
 
-        preprocess_directory(input_dir, output_dir)
+    for file in train_files:
+        shutil.copy(os.path.join(source, file), train_dir)
+    for file in val_files:
+        shutil.copy(os.path.join(source, file), val_dir)
+    for file in test_files:
+        shutil.copy(os.path.join(source, file), test_dir)
+
+
+if __name__ == "__main__":
+    categories = ['clean', 'messy']
+    for category in categories:
+        input_dir = os.path.join(DATA_PATHS['raw'], category)
+        train_dir = os.path.join(DATA_PATHS['processed'], 'train', category)
+        val_dir = os.path.join(DATA_PATHS['processed'], 'val', category)
+        test_dir = os.path.join(DATA_PATHS['processed'], 'test', category)
+
+        os.makedirs(train_dir, exist_ok=True)
+        os.makedirs(val_dir, exist_ok=True)
+        os.makedirs(test_dir, exist_ok=True)
+
+        split_data(input_dir, train_dir, val_dir, test_dir)
+
+        # Now preprocess each split
+        preprocess_directory(train_dir, train_dir)
+        preprocess_directory(val_dir, val_dir)
+        preprocess_directory(test_dir, test_dir)
