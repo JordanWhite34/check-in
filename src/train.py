@@ -46,10 +46,10 @@ transform = transforms.Compose([
     # Add any other transformations you defined in preprocessing.py
 ])
 
-train_dataset = datasets.ImageFolder(root=DATA_PATHS['processed'] + '/train', transform=transform)
+train_dataset = datasets.ImageFolder(root=DATA_PATHS['augmented'] + '/train', transform=transform)
 train_loader = DataLoader(train_dataset, batch_size=MODEL_PARAMS['batch_size'], shuffle=True)
 
-val_dataset = datasets.ImageFolder(root=DATA_PATHS['processed'] + '/val', transform=transform)
+val_dataset = datasets.ImageFolder(root=DATA_PATHS['augmented'] + '/val', transform=transform)
 val_loader = DataLoader(val_dataset, batch_size=MODEL_PARAMS['batch_size'], shuffle=False)
 
 dataloaders = {'train': train_loader, 'val': val_loader}
