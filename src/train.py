@@ -1,4 +1,5 @@
 # train.py
+import os
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -11,10 +12,16 @@ from config import MODEL_PARAMS, DATA_PATHS
 device = torch.device('mps')
 print(device)
 
+# Define a directory for saving checkpoints
+CHECKPOINT_DIR = os.path.join('checkpoints')
+os.makedirs(CHECKPOINT_DIR, exist_ok=True)
+
 
 # Save checkpoint function
 def save_checkpoint(state, filename="checkpoint.pth.tar"):
-    torch.save(state, filename)
+    filepath = os.path.join(CHECKPOINT_DIR, filename)
+    torch.save(state, filepath)
+    print(f"Checkpoint saved: {filepath}")
 
 
 # Load checkpoint function
@@ -91,12 +98,13 @@ for epoch in range(MODEL_PARAMS['num_epochs']):
     val_accuracy = 100 * val_correct / val_total
     print(f'Validation Accuracy: {val_accuracy:.2f}%')
 
-    # Save the model checkpoint
+    # Now, when you call save_checkpoint, it will automatically save to the checkpoints directory
     if epoch % 5 == 0:  # Save every 5 epochs, adjust as needed
+        checkpoint_filename = f"checkpoint_epoch_{epoch}.pth.tar"
         save_checkpoint({
             'epoch': epoch,
             'state_dict': model.state_dict(),
             'optimizer': optimizer.state_dict(),
-        }, filename=f"checkpoint_epoch_{epoch}.pth.tar")
+        }, filename=checkpoint_filename)
 
 print('Finished Training')
