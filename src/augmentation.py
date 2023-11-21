@@ -57,8 +57,11 @@ def process_directory(input_directory, output_directory):
 
 
 if __name__ == "__main__":
-    for category in ['clean', 'messy']:
-        input_dir = os.path.join(DATA_PATHS['processed'], category)
-        output_dir = os.path.join(DATA_PATHS['augmented'], category)
+    for category in ['test', 'train', 'val']:
+        for subcategory in ['clean', 'messy']:
+            input_dir = os.path.join(DATA_PATHS['processed'], category, subcategory)
+            output_dir = os.path.join(DATA_PATHS['augmented'], category, subcategory)
 
-        process_directory(input_dir, output_dir)
+            process_directory(input_dir, output_dir)
+
+    print('augmentation completed')
