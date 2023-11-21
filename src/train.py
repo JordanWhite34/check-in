@@ -4,12 +4,12 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
-from model import MyModel  # Replace with your actual model import
+from models.model import SimpleCNN
 from config import MODEL_PARAMS, DATA_PATHS
 from utils import save_checkpoint, load_checkpoint  # Assuming you have these utility functions
 
 # Device configuration
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = torch.device('mps')
 
 
 def train(model, dataloaders, criterion, optimizer, num_epochs, device):
@@ -96,7 +96,7 @@ if __name__ == "__main__":
     }
 
     # Model, Loss Function, Optimizer
-    model = MyModel()  # Replace with your actual model
+    model = SimpleCNN()
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=MODEL_PARAMS['learning_rate'])
 
