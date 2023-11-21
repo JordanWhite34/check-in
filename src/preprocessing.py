@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 import shutil
 from sklearn.model_selection import train_test_split
-from config import PREPROCESSING_CONFIG, DATA_PATHS
+from config import PREPROCESSING_CONFIG, DATA_PATHS, SPLIT_RATIOS
 
 
 def load_image(image_path):
@@ -46,7 +46,7 @@ def preprocess_directory(directory_path, output_directory):
                 print(f"Error processing {filename}: {e}")
 
 
-def split_data(source, train_dir, val_dir, test_dir, train_size=0.7, val_size=0.15):
+def split_data(source, train_dir, val_dir, test_dir, train_size=SPLIT_RATIOS['train_ratio'], val_size=SPLIT_RATIOS['val_ratio']):
     files = os.listdir(source)
     train_files, test_files = train_test_split(files, test_size=1 - train_size, random_state=42)
     train_files, val_files = train_test_split(train_files, test_size=val_size / (train_size + val_size),
