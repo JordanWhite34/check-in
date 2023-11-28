@@ -10,7 +10,7 @@ from config import MODEL_PARAMS, DATA_PATHS
 
 # Device configuration
 device = torch.device('mps')
-print(device)
+print("using", device)
 
 # Define a directory for saving checkpoints
 CHECKPOINT_DIR = os.path.join('checkpoints')
