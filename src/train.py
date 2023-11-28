@@ -35,15 +35,20 @@ def load_checkpoint(model, optimizer, filename="checkpoint.pth.tar"):
 # Load pre-trained ResNet-50 model
 model = resnet50(weights=ResNet50_Weights.IMAGENET1K_V1)
 
-# Modify the final fully connected layer for binary classification
+# Add dropout before the final fully connected layer
 num_ftrs = model.fc.in_features
-model.fc = nn.Linear(num_ftrs, 2)  # 2 classes: clean and messy
+model.fc = nn.Sequential(
+    nn.Dropout(0.5),  # 50% dropout
+    nn.Linear(num_ftrs, 2)  # 2 classes: clean and messy
+)
 
+# Transfer model to MPS device
+device = torch.device('mps')
 model.to(device)
 
 # Loss and optimizer
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model.parameters(), lr=MODEL_PARAMS['learning_rate'])
+optimizer = optim.Adam(model.parameters(), lr=MODEL_PARAMS['learning_rate'], weight_decay=1e-4)
 
 # Data loading
 transform = transforms.Compose([
