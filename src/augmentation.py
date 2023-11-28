@@ -6,27 +6,50 @@ from config import DATA_PATHS
 
 
 def augment_image(image):
-    # List to store augmented images
     augmented_images = []
 
-    # Different augmentation techniques
     # Horizontal flip
     flipped = cv2.flip(image, 1)
     augmented_images.append(flipped)
 
-    # Rotation at different angles
-    angles = [10, 15, -15]  # Example angles
+    # Rotation
+    angles = [10, 15, -15]
     for angle in angles:
         center = (image.shape[1] // 2, image.shape[0] // 2)
-        rotation_matrix = cv2.getRotationMatrix2D(center, angle=angle, scale=1)
-        rotated = cv2.warpAffine(image, rotation_matrix, (image.shape[1], image.shape[0]))
+        matrix = cv2.getRotationMatrix2D(center, angle, 1.0)
+        rotated = cv2.warpAffine(image, matrix, (image.shape[1], image.shape[0]))
         augmented_images.append(rotated)
 
-    # Brightness adjustments
-    alphas = [1.1, 0.9]  # Example for increasing and decreasing brightness
-    for alpha in alphas:
-        brightness_adjusted = cv2.convertScaleAbs(image, alpha=alpha, beta=0)
-        augmented_images.append(brightness_adjusted)
+    # Random Cropping
+    # Assuming you want to crop 90% of the original size
+    crop_size = (int(image.shape[1] * 0.9), int(image.shape[0] * 0.9))
+    x = np.random.randint(0, image.shape[1] - crop_size[1])
+    y = np.random.randint(0, image.shape[0] - crop_size[0])
+    cropped = image[y:y+crop_size[0], x:x+crop_size[1]]
+    augmented_images.append(cropped)
+
+    # Zooming
+    # Zoom by 10-20%
+    zoom_factor = 1 + np.random.uniform(0.1, 0.2)
+    zoomed = cv2.resize(image, None, fx=zoom_factor, fy=zoom_factor)
+    x = (zoomed.shape[1] - image.shape[1]) // 2
+    y = (zoomed.shape[0] - image.shape[0]) // 2
+    zoomed = zoomed[y:y+image.shape[0], x:x+image.shape[1]]
+    augmented_images.append(zoomed)
+
+    # Brightness Adjustment
+    brightness_factor = np.random.uniform(0.8, 1.2)
+    hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
+    hsv = np.array(hsv, dtype=np.float64)
+    hsv[:,:,2] = hsv[:,:,2] * brightness_factor
+    hsv[:,:,2][hsv[:,:,2]>255] = 255
+    bright_adjusted = cv2.cvtColor(np.array(hsv, dtype=np.uint8), cv2.COLOR_HSV2RGB)
+    augmented_images.append(bright_adjusted)
+
+    # Color Jittering
+    contrast_factor = np.random.uniform(0.8, 1.2)
+    jittered = cv2.addWeighted(image, contrast_factor, np.zeros(image.shape, image.dtype), 0, 0)
+    augmented_images.append(jittered)
 
     return augmented_images
 
