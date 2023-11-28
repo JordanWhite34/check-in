@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
-from models.model import SimpleCNN
+from torchvision.models import resnet50, ResNet50_Weights
 from config import MODEL_PARAMS, DATA_PATHS
 
 # Device configuration
@@ -32,8 +32,14 @@ def load_checkpoint(model, optimizer, filename="checkpoint.pth.tar"):
         optimizer.load_state_dict(checkpoint['optimizer'])
 
 
-# Initialize the model
-model = SimpleCNN().to(device)
+# Load pre-trained ResNet-50 model
+model = resnet50(weights=ResNet50_Weights.IMAGENET1K_V1)
+
+# Modify the final fully connected layer for binary classification
+num_ftrs = model.fc.in_features
+model.fc = nn.Linear(num_ftrs, 2)  # 2 classes: clean and messy
+
+model.to(device)
 
 # Loss and optimizer
 criterion = nn.CrossEntropyLoss()
@@ -78,7 +84,8 @@ for epoch in range(MODEL_PARAMS['num_epochs']):
         total += labels.size(0)
         correct += (predicted == labels).sum().item()
 
-    print(f'Epoch [{epoch+1}/{MODEL_PARAMS["num_epochs"]}], Loss: {running_loss/total:.4f}, Accuracy: {100 * correct/total:.2f}%')
+    print(
+        f'Epoch [{epoch + 1}/{MODEL_PARAMS["num_epochs"]}], Loss: {running_loss / total:.4f}, Accuracy: {100 * correct / total:.2f}%')
 
     # Validation step
     model.eval()
