@@ -9,65 +9,44 @@ from torchvision.models import resnet50, ResNet50_Weights
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from config import MODEL_PARAMS, DATA_PATHS
 
-def main():
-    # Device configuration
-    device = torch.device('mps')
-    print("using", device)
 
-    # Define a directory for saving checkpoints
+def save_checkpoint(state, filename="checkpoint.pth.tar"):
     CHECKPOINT_DIR = os.path.join('checkpoints')
     os.makedirs(CHECKPOINT_DIR, exist_ok=True)
+    filepath = os.path.join(CHECKPOINT_DIR, filename)
+    torch.save(state, filepath)
+    print(f"Checkpoint saved: {filepath}")
 
 
-    # Save checkpoint function
-    def save_checkpoint(state, filename="checkpoint.pth.tar"):
-        filepath = os.path.join(CHECKPOINT_DIR, filename)
-        torch.save(state, filepath)
-        print(f"Checkpoint saved: {filepath}")
+def load_checkpoint(model, optimizer, filename="checkpoint.pth.tar"):
+    checkpoint = torch.load(filename, map_location='mps')  # Adjust map_location based on your setup
+    model.load_state_dict(checkpoint['state_dict'])
+    if optimizer:
+        optimizer.load_state_dict(checkpoint['optimizer'])
 
 
-    # Load checkpoint function
-    def load_checkpoint(model, optimizer, filename="checkpoint.pth.tar"):
-        checkpoint = torch.load(filename, map_location=device)
-        model.load_state_dict(checkpoint['state_dict'])
-        if optimizer:
-            optimizer.load_state_dict(checkpoint['optimizer'])
-
-
-    # Load pre-trained ResNet-50 model
-    model = resnet50(weights=ResNet50_Weights.IMAGENET1K_V1)
-
-    # Add dropout before the final fully connected layer
-    num_ftrs = model.fc.in_features
-    model.fc = nn.Sequential(
-        nn.Dropout(0.5),  # 50% dropout
-        nn.Linear(num_ftrs, 2)  # 2 classes: clean and messy
-    )
-
-    # Transfer model to MPS device
-    device = torch.device('mps')
-    model.to(device)
-
-    # Loss and optimizer
-    criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=MODEL_PARAMS['learning_rate'], weight_decay=MODEL_PARAMS['weight_decay'])
-    scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=5, verbose=True)
-
-    # Data loading
+def get_transforms():
+    # Define your transforms
     transform = transforms.Compose([
-        transforms.Resize((224, 224)),  # Adjust to your preprocessing size
+        transforms.Resize((224, 224)),
         transforms.ToTensor(),
-        # Add any other transformations you defined in preprocessing.py
+        # Add any other transformations here
     ])
+    return transform
 
+
+def get_dataloaders(batch_size, train_dir, val_dir, transform):
+    # Assuming DATA_PATHS dict or similar setup for paths
     train_dataset = datasets.ImageFolder(root=DATA_PATHS['augmented'] + '/train', transform=transform)
     train_loader = DataLoader(train_dataset, batch_size=MODEL_PARAMS['batch_size'], shuffle=True)
 
     val_dataset = datasets.ImageFolder(root=DATA_PATHS['augmented'] + '/val', transform=transform)
     val_loader = DataLoader(val_dataset, batch_size=MODEL_PARAMS['batch_size'], shuffle=False)
 
-    dataloaders = {'train': train_loader, 'val': val_loader}
+    return train_loader, val_loader
 
+
+def train(model, dataloaders, device, criterion, optimizer, scheduler, num_epochs):
     # Training loop
     for epoch in range(MODEL_PARAMS['num_epochs']):
         model.train()
@@ -130,4 +109,20 @@ def main():
     print('Finished Training')
 
 if __name__ == "__main__":
-    main()
+    # Device configuration
+    device = torch.device('mps')
+    print("using", device)
+    model = resnet50(weights=ResNet50_Weights.IMAGENET1K_V1)
+    # Modify model as needed
+    model.to(device)
+
+    # Loss and optimizer
+    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.Adam(model.parameters(), lr=MODEL_PARAMS['learning_rate'], weight_decay=MODEL_PARAMS['weight_decay'])
+    scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=5, verbose=True)
+
+    transform = get_transforms()
+    train_loader, val_loader = get_dataloaders(MODEL_PARAMS['batch_size'], DATA_PATHS['augmented'] + '/train', DATA_PATHS['augmented'] + '/val', transform)
+    dataloaders = {'train': train_loader, 'val': val_loader}
+
+    train(model, dataloaders, device, criterion, optimizer, scheduler, MODEL_PARAMS['num_epochs'])
