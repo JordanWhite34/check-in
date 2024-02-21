@@ -19,6 +19,7 @@ MODEL_PARAMS = {
     'learning_rate': 1e-4,  # A good starting point for many models
     'batch_size': 32,  # Adjust based on memory availability
     'num_epochs': 25,  # Initial epochs count
+    'weight_decay': 1e-4
 }
 
 # Training Settings
