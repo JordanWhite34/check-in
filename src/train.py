@@ -47,6 +47,7 @@ def get_dataloaders(batch_size, train_dir, val_dir, transform):
 
 
 def train(model, dataloaders, device, criterion, optimizer, scheduler, num_epochs):
+    best_val_accuracy = 0  # Variable to keep track of the best validation accuracy
     # Training loop
     for epoch in range(MODEL_PARAMS['num_epochs']):
         model.train()
@@ -100,6 +101,17 @@ def train(model, dataloaders, device, criterion, optimizer, scheduler, num_epoch
         # Save checkpoint
         if epoch % 5 == 0:
             checkpoint_filename = f"checkpoint_epoch_{epoch}.pth.tar"
+            save_checkpoint({
+                'epoch': epoch,
+                'state_dict': model.state_dict(),
+                'optimizer': optimizer.state_dict(),
+            }, filename=checkpoint_filename)
+
+        # Save checkpoint if current validation accuracy is higher than the best seen so far
+        if val_accuracy > best_val_accuracy:
+            print(f'New best validation accuracy: {val_accuracy:.2f}%, saving checkpoint...')
+            best_val_accuracy = val_accuracy
+            checkpoint_filename = f"checkpoint_epoch_{epoch}_val_acc_{val_accuracy:.2f}.pth.tar"
             save_checkpoint({
                 'epoch': epoch,
                 'state_dict': model.state_dict(),
