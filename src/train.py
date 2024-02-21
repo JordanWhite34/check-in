@@ -46,8 +46,11 @@ def get_dataloaders(batch_size, train_dir, val_dir, transform):
     return train_loader, val_loader
 
 
-def train(model, dataloaders, device, criterion, optimizer, scheduler, num_epochs):
+def train(model, dataloaders, device, criterion, optimizer, scheduler, num_epochs, patience=5):
+    best_val_loss = float('inf')
+    no_improve_epochs = 0  # Counter for early stopping
     best_val_accuracy = 0  # Variable to keep track of the best validation accuracy
+
     # Training loop
     for epoch in range(MODEL_PARAMS['num_epochs']):
         model.train()
@@ -95,9 +98,6 @@ def train(model, dataloaders, device, criterion, optimizer, scheduler, num_epoch
         val_accuracy = 100 * val_correct / val_total
         print(f'Validation Accuracy: {val_accuracy:.2f}%')
 
-        # Step the scheduler with the validation loss
-        scheduler.step(val_loss)
-
         # Save checkpoint
         if epoch % 5 == 0:
             checkpoint_filename = f"checkpoint_epoch_{epoch}.pth.tar"
@@ -107,16 +107,31 @@ def train(model, dataloaders, device, criterion, optimizer, scheduler, num_epoch
                 'optimizer': optimizer.state_dict(),
             }, filename=checkpoint_filename)
 
-        # Save checkpoint if current validation accuracy is higher than the best seen so far
-        if val_accuracy > best_val_accuracy:
-            print(f'New best validation accuracy: {val_accuracy:.2f}%, saving checkpoint...')
-            best_val_accuracy = val_accuracy
-            checkpoint_filename = f"checkpoint_epoch_{epoch}_val_acc_{val_accuracy:.2f}.pth.tar"
-            save_checkpoint({
-                'epoch': epoch,
-                'state_dict': model.state_dict(),
-                'optimizer': optimizer.state_dict(),
-            }, filename=checkpoint_filename)
+        # # Save checkpoint if current validation accuracy is higher than the best seen so far
+        # if val_accuracy > best_val_accuracy:
+        #     print(f'New best validation accuracy: {val_accuracy:.2f}%, saving checkpoint...')
+        #     best_val_accuracy = val_accuracy
+        #     checkpoint_filename = f"checkpoint_epoch_{epoch}_val_acc_{val_accuracy:.2f}.pth.tar"
+        #     save_checkpoint({
+        #         'epoch': epoch,
+        #         'state_dict': model.state_dict(),
+        #         'optimizer': optimizer.state_dict(),
+        #     }, filename=checkpoint_filename)
+
+        # Check for improvement
+        if val_loss < best_val_loss:
+            best_val_loss = val_loss
+            no_improve_epochs = 0
+            # Save checkpoint as this is the best model so far
+            save_checkpoint({'state_dict': model.state_dict()}, f"best_checkpoint_{epoch}.pth.tar")
+        else:
+            no_improve_epochs += 1
+            if no_improve_epochs >= patience:
+                print(f"No improvement in validation loss for {patience} consecutive epochs. Early stopping...")
+                break
+
+        # Step the scheduler with the validation loss
+        scheduler.step(val_loss)
 
     print('Finished Training')
 
