@@ -1,6 +1,8 @@
 import torch.nn as nn
 import torch.nn.functional as F
 
+# This is not being used anymore
+
 
 class SimpleCNN(nn.Module):
     def __init__(self):
