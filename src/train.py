@@ -108,6 +108,7 @@ def train(model, dataloaders, device, criterion, optimizer, scheduler, num_epoch
 
     print('Finished Training')
 
+
 if __name__ == "__main__":
     # Device configuration
     device = torch.device('mps')
