@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 import torchvision.models as models
 
@@ -11,7 +12,6 @@ loaded_model.fc = nn.Sequential(
     nn.Linear(num_ftrs, 2)  # 2 classes: clean and messy
 )
 
-import torch
 
 def load_checkpoint(model, optimizer, filename="checkpoint.pth.tar"):
     checkpoint = torch.load(filename)
