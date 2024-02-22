@@ -8,7 +8,7 @@ import torch
 # Initialize the PyTorch model
 device = torch.device('mps' if torch.backends.mps.is_available() else 'cpu')
 model = initialize_model().to(device)
-checkpoint_path = 'checkpoints/checkpoint_epoch_15.pth.tar'
+checkpoint_path = 'checkpoints/checkpoint_epoch_20.pth.tar'
 load_checkpoint(checkpoint_path, model, device)
 transform = get_transforms()  # Adjust as necessary
 
@@ -52,4 +52,5 @@ class ImageClassifierApp:
 if __name__ == "__main__":
     # Create the application window
     root = tk.Tk()
+    root.geometry('600x400')
     app = ImageClassifierApp(root, "Room Messiness Classification App")
