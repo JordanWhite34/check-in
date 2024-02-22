@@ -5,8 +5,6 @@ import torch.optim as optim
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torchvision.models import resnet50, ResNet50_Weights
 from preprocessing import (
-    load_image,
-    transform_image,
     preprocess_directory,
     split_data,
 )
