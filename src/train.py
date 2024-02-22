@@ -123,7 +123,11 @@ def train(model, dataloaders, device, criterion, optimizer, scheduler, num_epoch
             best_val_loss = val_loss
             no_improve_epochs = 0
             # Save checkpoint as this is the best model so far
-            save_checkpoint({'state_dict': model.state_dict()}, f"best_checkpoint_{epoch}.pth.tar")
+            save_checkpoint({
+                'epoch': epoch,
+                'state_dict': model.state_dict(),
+                'optimizer': optimizer.state_dict(),
+            }, filename="best_checkpoint")
         else:
             no_improve_epochs += 1
             if no_improve_epochs >= patience:
