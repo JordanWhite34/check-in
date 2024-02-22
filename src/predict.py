@@ -38,4 +38,4 @@ if __name__ == '__main__':
     transform = get_transforms()  # Ensure this returns a torchvision.transforms.Compose object suitable for model
 
     predicted_class, confidence = predict_single_image(single_image_path, model, device, transform)
-    print(f'Predicted Class: {predicted_class}, Confidence: {confidence:.2f}%')
+    print(f'Predicted Class: {predicted_class}, Confidence: {100*confidence:.2f}%')
