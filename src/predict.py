@@ -21,7 +21,7 @@ def predict_single_image(image_path, model, device, transform):
         confidence = probabilities.max(dim=1).values.item()
 
     # Map predicted class to 'clean' or 'messy'
-    class_label = 'messy' if predicted_class == 1 else 'clean'
+    class_label = 'chaotic' if predicted_class == 1 else 'calming'
 
     return class_label, confidence
 
