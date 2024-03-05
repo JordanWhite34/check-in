@@ -127,7 +127,7 @@ def train(model, dataloaders, device, criterion, optimizer, scheduler, num_epoch
                 'epoch': epoch,
                 'state_dict': model.state_dict(),
                 'optimizer': optimizer.state_dict(),
-            }, filename="best_checkpoint")
+            }, filename="best_checkpoint.pth.tar")
         else:
             no_improve_epochs += 1
             if no_improve_epochs >= patience:
