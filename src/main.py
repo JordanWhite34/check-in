@@ -56,7 +56,7 @@ def main():
     train(model, dataloaders, device, criterion, optimizer, scheduler, MODEL_PARAMS['num_epochs'])
 
     # Evaluate Model
-    checkpoint_path = 'checkpoints/checkpoint_epoch_20.pth.tar'  # Adjust path as needed
+    checkpoint_path = 'checkpoints/best_checkpoint.pth.tar'  # Adjust path as needed
     load_checkpoint(checkpoint_path, model, device)
 
     # Setup DataLoader
