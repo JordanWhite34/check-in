@@ -18,7 +18,7 @@ PREPROCESSING_CONFIG = {
 MODEL_PARAMS = {
     'learning_rate': 1e-4,  # A good starting point for many models
     'batch_size': 32,  # Adjust based on memory availability
-    'num_epochs': 25,  # Initial epochs count
+    'num_epochs': 10,  # Initial epochs count
     'weight_decay': 1e-4,
     'model_path': 'checkpoints/checkpoint_epoch_20.pth.tar'
 }
