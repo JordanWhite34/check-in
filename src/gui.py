@@ -8,7 +8,7 @@ import torch
 # Initialize the PyTorch model
 device = torch.device('mps' if torch.backends.mps.is_available() else 'cpu')
 model = initialize_model().to(device)
-checkpoint_path = 'checkpoints/checkpoint_epoch_20.pth.tar'
+checkpoint_path = 'checkpoints/best_checkpoint.pth.tar'
 load_checkpoint(checkpoint_path, model, device)
 transform = get_transforms()  # Adjust as necessary
 
