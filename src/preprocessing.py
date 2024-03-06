@@ -5,6 +5,7 @@ import numpy as np
 import shutil
 from sklearn.model_selection import train_test_split
 from config import PREPROCESSING_CONFIG, DATA_PATHS, SPLIT_RATIOS
+from tqdm import tqdm
 
 
 def load_image(image_path):
@@ -21,6 +22,28 @@ def transform_image(image):
     std = np.array(PREPROCESSING_CONFIG['std'], dtype=np.float32)
     normalized_image = (resized_image - mean) / std
     return normalized_image
+
+
+def calculate_mean_std(directory_path):
+    pixel_sum = np.zeros(3)
+    pixel_sq_sum = np.zeros(3)
+    image_count = 0
+
+    # Iterate over the images in the directory
+    for filename in tqdm(os.listdir(directory_path)):  # tqdm is optional, for a progress bar
+        if filename.lower().endswith(('.jpg', '.png', '.jpeg')):
+            image_path = os.path.join(directory_path, filename)
+            image = cv2.imread(image_path)
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB) / 255.0
+            pixel_sum += image.sum(axis=(0, 1))
+            pixel_sq_sum += (image ** 2).sum(axis=(0, 1))
+            image_count += image.shape[0] * image.shape[1]
+
+    mean = pixel_sum / image_count
+    std = np.sqrt((pixel_sq_sum / image_count) - (mean ** 2))
+
+    return mean, std
+
 
 
 def preprocess_directory(directory_path, output_directory):
@@ -62,6 +85,25 @@ def split_data(source, train_dir, val_dir, test_dir, train_size=SPLIT_RATIOS['tr
 
 if __name__ == "__main__":
     categories = ['clean', 'messy']
+    all_means = []
+    all_stds = []
+
+    # Calculate the mean and std for each category
+    for category in categories:
+        input_dir = os.path.join(DATA_PATHS['raw'], category)
+        mean, std = calculate_mean_std(input_dir)
+        all_means.append(mean)
+        all_stds.append(std)
+
+    # Calculate the global mean and std across all categories
+    global_mean = np.mean(all_means, axis=0)
+    global_std = np.mean(all_stds, axis=0)
+
+    # Optionally, you can print out or update the PREPROCESSING_CONFIG with these values
+    # print(f"Global mean: {global_mean}")
+    # print(f"Global std: {global_std}")
+    PREPROCESSING_CONFIG['mean'] = global_mean.tolist()
+    PREPROCESSING_CONFIG['std'] = global_std.tolist()
     for category in categories:
         input_dir = os.path.join(DATA_PATHS['raw'], category)
         train_dir = os.path.join(DATA_PATHS['processed'], 'train', category)
