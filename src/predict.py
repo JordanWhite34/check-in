@@ -30,11 +30,11 @@ def predict_single_image(image_path, model, device, transform):
 if __name__ == '__main__':
     device = torch.device('mps')
     model = initialize_model().to(device)
-    checkpoint_path = 'checkpoints/checkpoint_epoch_15.pth.tar'  # Adjust path as needed
+    checkpoint_path = 'checkpoints/best_checkpoint.pth.tar'  # Adjust path as needed
     load_checkpoint(checkpoint_path, model, device)
 
     # Path to your single image
-    single_image_path = '/Users/jordanwhite/Downloads/messy.png'
+    single_image_path = '/Users/jordanwhite/Downloads/messy.png' # make sure there is an image to test on here
     transform = get_transforms()  # Ensure this returns a torchvision.transforms.Compose object suitable for model
 
     predicted_class, confidence = predict_single_image(single_image_path, model, device, transform)
