@@ -1,7 +1,3 @@
-# Machine Learning Project Template
-
-This repository is structured as a template for a machine learning project. It is set up to facilitate data analysis, model training, and result reporting.
-
 ## Structure
 
 - `notebooks/`: Contains Jupyter notebooks for exploratory data analysis and reports.
